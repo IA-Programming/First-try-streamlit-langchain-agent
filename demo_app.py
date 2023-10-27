@@ -16,7 +16,7 @@ import time
 # key 1- Using Streamlit call backhandler
 # key 2- Streaming the response
 
-OPENAI_API_KEY = "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"
+OPENAI_API_KEY = ""
 os.environ['OPENAI_API_KEY'] = OPENAI_API_KEY
 
 st.title("Streamlit Callback Handler and Streaming response tutorial")
