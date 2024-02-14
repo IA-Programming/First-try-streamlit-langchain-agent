@@ -40,10 +40,6 @@ def load_records_from_file(path: str) -> list[CallbackRecord]:
     """Load the list of CallbackRecords from a pickle file at the given path."""
     with open(path, "rb") as file:
         records = pickle.load(file)
-        from pprint import pprint
-        print('\033[1;91m' + '-'*200)
-        pprint(records, sort_dicts=False)
-        print('-'*200 + '\033[0m')
 
     if not isinstance(records, list):
         raise RuntimeError(f"Bad CallbackRecord data in {path}")
@@ -96,9 +92,16 @@ def playback_callbacks(
     # Return the agent's result
     for record in records:
         if record["callback_type"] == CallbackType.ON_AGENT_FINISH:
-            from pprint import pprint
-            pprint(record, sort_dicts=False)
-            return record["args"][0][0]["output"]
+            # from pprint import pprint
+            # print('\033[1;33m' + '#'*200)
+            # pprint(records[-2], sort_dicts=False)
+            # print('#'*200)
+            # pprint(records[-1], sort_dicts=False)
+            # print('#'*200 + '\033[0m')
+            try:
+                return records[-1]["args"][0]["output"]
+            except:
+                return record["args"][0][0]["output"]
 
     return "[Missing Agent Result]"
 
