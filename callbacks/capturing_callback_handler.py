@@ -40,10 +40,6 @@ def load_records_from_file(path: str) -> list[CallbackRecord]:
     """Load the list of CallbackRecords from a pickle file at the given path."""
     with open(path, "rb") as file:
         records = pickle.load(file)
-        from pprint import pprint
-        print('\033[1;91m' + '-'*200)
-        pprint(records, sort_dicts=False)
-        print('-'*200 + '\033[0m')
 
     if not isinstance(records, list):
         raise RuntimeError(f"Bad CallbackRecord data in {path}")
@@ -96,70 +92,9 @@ def playback_callbacks(
     # Return the agent's result
     for record in records:
         if record["callback_type"] == CallbackType.ON_AGENT_FINISH:
-            from pprint import pprint
-            pprint(record, sort_dicts=False)
-            return record["args"][0][0]["output"]
+            try:
+                return records[-1]["args"][0]
+            except:
+                return record["args"][0][0]
 
     return "[Missing Agent Result]"
-
-
-class CapturingCallbackHandler(BaseCallbackHandler):
-    def __init__(self) -> None:
-        self._records: list[CallbackRecord] = []
-        self._last_time: float | None = None
-
-    def dump_records_to_file(self, path: str) -> None:
-        """Write the list of CallbackRecords to a pickle file at the given path."""
-        with open(path, "wb") as file:
-            pickle.dump(self._records, file)
-
-    def _append_record(
-        self, type: str, args: tuple[Any, ...], kwargs: dict[str, Any]
-    ) -> None:
-        time_now = time.time()
-        time_delta = time_now - self._last_time if self._last_time is not None else 0
-        self._last_time = time_now
-        self._records.append(
-            CallbackRecord(
-                callback_type=type, args=args, kwargs=kwargs, time_delta=time_delta
-            )
-        )
-
-    def on_llm_start(self, *args: Any, **kwargs: Any) -> None:
-        self._append_record(CallbackType.ON_LLM_START, args, kwargs)
-
-    def on_llm_new_token(self, *args: Any, **kwargs: Any) -> None:
-        self._append_record(CallbackType.ON_LLM_NEW_TOKEN, args, kwargs)
-
-    def on_llm_end(self, *args: Any, **kwargs: Any) -> None:
-        self._append_record(CallbackType.ON_LLM_END, args, kwargs)
-
-    def on_llm_error(self, *args: Any, **kwargs: Any) -> None:
-        self._append_record(CallbackType.ON_LLM_ERROR, args, kwargs)
-
-    def on_tool_start(self, *args: Any, **kwargs: Any) -> None:
-        self._append_record(CallbackType.ON_TOOL_START, args, kwargs)
-
-    def on_tool_end(self, *args: Any, **kwargs: Any) -> None:
-        self._append_record(CallbackType.ON_TOOL_END, args, kwargs)
-
-    def on_tool_error(self, *args: Any, **kwargs: Any) -> None:
-        self._append_record(CallbackType.ON_TOOL_ERROR, args, kwargs)
-
-    def on_text(self, *args: Any, **kwargs: Any) -> None:
-        self._append_record(CallbackType.ON_TEXT, args, kwargs)
-
-    def on_chain_start(self, *args: Any, **kwargs: Any) -> None:
-        self._append_record(CallbackType.ON_CHAIN_START, args, kwargs)
-
-    def on_chain_end(self, *args: Any, **kwargs: Any) -> None:
-        self._append_record(CallbackType.ON_CHAIN_END, args, kwargs)
-
-    def on_chain_error(self, *args: Any, **kwargs: Any) -> None:
-        self._append_record(CallbackType.ON_CHAIN_ERROR, args, kwargs)
-
-    def on_agent_action(self, *args: Any, **kwargs: Any) -> Any:
-        self._append_record(CallbackType.ON_AGENT_ACTION, args, kwargs)
-
-    def on_agent_finish(self, *args: Any, **kwargs: Any) -> None:
-        self._append_record(CallbackType.ON_AGENT_FINISH, args, kwargs)
